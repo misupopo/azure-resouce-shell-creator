@@ -1,0 +1,22 @@
+{
+  "name": "azure-resouce-shell-creator",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/misupopo/azure-resouce-shell-creator.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/misupopo/azure-resouce-shell-creator/issues"
+  },
+  "homepage": "https://github.com/misupopo/azure-resouce-shell-creator#readme",
+  "devDependencies": {
+    "json5": "^2.2.1"
+  }
+}
