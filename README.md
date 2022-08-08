@@ -1,0 +1,1 @@
+# azure-resouce-shell-creator
