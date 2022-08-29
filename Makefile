@@ -125,13 +125,18 @@ delete-vm:
 
 ####### vnet gateway #######
 
-# リソースグループの作成
-create-vpn-resource-group:
+create-vpn-resource-group: convert-json
 	az group create \
 		--name $(shell jq -r .resourceGroupName vpn.json) \
 		--location $(shell jq -r .location vpn.json)
 
-create-vpn-vnet:
+# リソースグループの作成
+create-vpn-resource-group: convert-json
+	az group create \
+		--name $(shell jq -r .resourceGroupName vpn.json) \
+		--location $(shell jq -r .location vpn.json)
+
+create-vpn-vnet: convert-json
 	az network vnet create \
 	  --name $(shell jq -r .vpn.vnet.name vpn.json) \
 	  --resource-group $(shell jq -r .resourceGroupName vpn.json) \
@@ -140,20 +145,20 @@ create-vpn-vnet:
 	  --subnet-name $(shell jq -r .vpn.vnet.subnetName vpn.json) \
 	  --subnet-prefix $(shell jq -r .vpn.vnet.subnetPrefixes vpn.json)
 
-create-vpn-subnet:
+create-vpn-subnet: convert-json
 	az network vnet subnet create \
 	  --vnet-name $(shell jq -r .vpn.vnet.name vpn.json) \
 	  --name $(shell jq -r .vpn.subnet.name vpn.json) \
 	  --resource-group $(shell jq -r .resourceGroupName vpn.json) \
 	  --address-prefix $(shell jq -r .vpn.subnet.addressPrefixes vpn.json)
 
-create-vpn-public-ip:
+create-vpn-public-ip: convert-json
 	az network public-ip create \
 	  --name $(shell jq -r .vpn.publicIp.name vpn.json) \
 	  --resource-group $(shell jq -r .resourceGroupName vpn.json) \
 	  --allocation-method $(shell jq -r .vpn.publicIp.allocationMethod vpn.json)
 
-create-vpn-gateway:
+create-vpn-gateway: convert-json
 	az network vnet-gateway create \
 	  --name $(shell jq -r .vpn.gateway.name vpn.json) \
 	  --location $(shell jq -r .location vpn.json) \
@@ -165,7 +170,7 @@ create-vpn-gateway:
 	  --vpn-type $(shell jq -r .vpn.gateway.vpnType vpn.json) \
 	  --no-wait
 
-show-public-ip:
+show-public-ip: convert-json
 	az network public-ip show \
       --name $(shell jq -r .vpn.publicIp.name vpn.json) \
       --resource-group $(shell jq -r .resourceGroupName vpn.json)
