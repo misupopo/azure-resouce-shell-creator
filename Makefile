@@ -1,11 +1,14 @@
 # 事前にconvert-jsonを実行しておくこと
-resourceGroupName := $(shell jq -r .resourceGroupName env.json)
-location := $(shell jq -r .location env.json)
-vnetName := $(shell jq -r .vpn.vnet.name env.json)
-vnetAddressPrefixes := $(shell jq -r .vpn.vnet.addressPrefixes env.json)
+# env of vpn
+envTarget := vpn
+
+resourceGroupName := $(shell jq -r .resourceGroupName $(envTarget).json)
+location := $(shell jq -r .location $(envTarget).json)
+vnetName := $(shell jq -r .vpn.vnet.name "$(envTarget)".json)
+vnetAddressPrefixes := $(shell jq -r .vpn.vnet.addressPrefixes "$(envTarget)".json)
 
 convert-json:
-	npx json5 env.json5 | jq . > env.json
+	npx json5 "$(envTarget)".json5 | jq . > "$(envTarget)".json
 
 test:
 	echo "$(resourceGroupName)"
@@ -48,18 +51,18 @@ delete-vnet:
 		--name "${vnetName}"
 
 ####### network security group #######
-create-nsg-vm:
+create-nsg-for-vm:
 	az network nsg create \
 		--resource-group "${resourceGroupName}" \
 		--name $(shell jq -r .networkSecurityGroup.vm.name env.json)
 
-create-nsg-container:
+create-nsg-for-container:
 	az network nsg create \
 		--resource-group "${resourceGroupName}" \
 		--name $(shell jq -r .networkSecurityGroup.container.name env.json)
 
 ####### subnet #######
-create-subnet-vm:
+create-subnet-for-vm:
 	az network vnet subnet create \
 		--address-prefixes $(shell jq -r .subnet.vm.addressPrefixes env.json) \
 		--name $(shell jq -r .subnet.vm.name env.json) \
@@ -67,7 +70,7 @@ create-subnet-vm:
 		--vnet-name "${vnetName}" \
 		--network-security-group $(shell jq -r .networkSecurityGroup.vm.name env.json)
 
-create-subnet-container:
+create-subnet-for-container:
 	az network vnet subnet create \
 		--address-prefixes $(shell jq -r .subnet.container.addressPrefixes env.json) \
 		--name $(shell jq -r .subnet.container.name env.json) \
@@ -119,3 +122,51 @@ delete-vm:
 	az vm delete -y \
 		--resource-group "${resourceGroupName}" \
 		--name $(shell jq -r .vm.name env.json)
+
+####### vnet gateway #######
+
+# リソースグループの作成
+create-vpn-resource-group:
+	az group create \
+		--name $(shell jq -r .resourceGroupName vpn.json) \
+		--location $(shell jq -r .location vpn.json)
+
+create-vpn-vnet:
+	az network vnet create \
+	  --name $(shell jq -r .vpn.vnet.name vpn.json) \
+	  --resource-group $(shell jq -r .resourceGroupName vpn.json) \
+	  --location $(shell jq -r .location vpn.json) \
+	  --address-prefix $(shell jq -r .vpn.vnet.addressPrefixes vpn.json) \
+	  --subnet-name $(shell jq -r .vpn.vnet.subnetName vpn.json) \
+	  --subnet-prefix $(shell jq -r .vpn.vnet.subnetPrefixes vpn.json)
+
+create-vpn-subnet:
+	az network vnet subnet create \
+	  --vnet-name $(shell jq -r .vpn.vnet.name vpn.json) \
+	  --name $(shell jq -r .vpn.subnet.name vpn.json) \
+	  --resource-group $(shell jq -r .resourceGroupName vpn.json) \
+	  --address-prefix $(shell jq -r .vpn.subnet.addressPrefixes vpn.json)
+
+create-vpn-public-ip:
+	az network public-ip create \
+	  --name $(shell jq -r .vpn.publicIp.name vpn.json) \
+	  --resource-group $(shell jq -r .resourceGroupName vpn.json) \
+	  --allocation-method $(shell jq -r .vpn.publicIp.allocationMethod vpn.json)
+
+create-vpn-gateway:
+	az network vnet-gateway create \
+	  --name $(shell jq -r .vpn.gateway.name vpn.json) \
+	  --location $(shell jq -r .location vpn.json) \
+	  --public-ip-address $(shell jq -r .vpn.publicIp.name vpn.json) \
+	  --resource-group $(shell jq -r .resourceGroupName vpn.json) \
+	  --vnet $(shell jq -r .vpn.vnet.name vpn.json) \
+	  --gateway-type $(shell jq -r .vpn.gateway.gatewayType vpn.json) \
+	  --sku $(shell jq -r .vpn.gateway.sku vpn.json) \
+	  --vpn-type $(shell jq -r .vpn.gateway.vpnType vpn.json) \
+	  --no-wait
+
+show-public-ip:
+	az network public-ip show \
+      --name $(shell jq -r .vpn.publicIp.name vpn.json) \
+      --resource-group $(shell jq -r .resourceGroupName vpn.json)
+

@@ -1,0 +1,26 @@
+{
+  "resourceGroupName": "testVpn",
+  "location": "japaneast",
+  "vpn": {
+    "vnet": {
+      "name": "vpn-vnet",
+      "addressPrefixes": "10.1.0.0/16",
+      "subnetPrefixes": "10.1.0.0/24",
+      "subnetName": "Frontend",
+    },
+    "subnet": {
+      "name": "vpn-subnet",
+      "addressPrefixes": "10.1.255.0/27",
+    },
+    "publicIp": {
+      "name": "vpn-public-ip",
+      "allocationMethod": "Dynamic",
+    },
+    "gateway": {
+      "name": "vpn-gateway",
+      "gatewayType": "Vpn",
+      "sku": "VpnGw1",
+      "vpnType": "RouteBased",
+    }
+  },
+}
